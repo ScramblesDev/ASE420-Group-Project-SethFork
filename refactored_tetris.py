@@ -43,7 +43,7 @@ class Tetris:
         self.score = 0
         self.state = "start"  # or "gameover"
         self.field = [[0] * self.board_width for _ in range(self.board_height)]
-        self.speed_increase = SpeedIncrease(self, increase_interval=200, max_speed=5)
+        self.speed_increase = SpeedIncrease(self, increase_interval=400, max_speed=5)
         self.dropping_counter = 0 # init root dropspeed
 
     def create_figure(self, x, y):
@@ -143,7 +143,6 @@ def main():
             counter = 0
 
         if counter % game.dropping_counter == 0 or pressing_down and game.state == "start":
-            print(f'counter = {counter}; dropping_counter = {game.dropping_counter}')
             game.move_down()
 
         for event in pygame.event.get():
@@ -170,6 +169,8 @@ def main():
 
         pygame.display.flip()
         clock.tick(fps)
+
+        if (game.state == "gameover"): done = True
 
     pygame.quit()
 

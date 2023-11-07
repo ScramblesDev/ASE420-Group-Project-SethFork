@@ -11,7 +11,6 @@ class SpeedIncrease:
         if dropping_counter > self.max_speed:
             self.counter += 1
             if self.counter >= self.increase_interval:
-                print(f"speed increased {fps}")
                 fps += 5
                 self.counter = 0
                 dropping_counter = dropping_counter - 1
