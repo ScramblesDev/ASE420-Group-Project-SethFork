@@ -1,7 +1,5 @@
 import pygame
 import random
-from speed_increase import SpeedIncrease
-from speed_increase import GameOverScreen
 
 # Colors definitions
 COLORS = [
@@ -44,8 +42,6 @@ class Tetris:
         self.score = 0
         self.state = "start"  # or "gameover"
         self.field = [[0] * self.board_width for _ in range(self.board_height)]
-        self.speed_increase = SpeedIncrease(self, increase_interval=400, max_speed=5)
-        self.dropping_counter = 0 # init root dropspeed
 
     def create_figure(self, x, y):
         self.shift_x = x
@@ -135,64 +131,38 @@ def main():
     counter = 0
     pressing_down = False
     done = False
-    game.dropping_counter = fps // 2  # Initialize the dropping counter
-
-    game_over_screen = GameOverScreen(screen)
-    paused = False  
 
     while not done:
-        if game.state == "gameover":
-            game_over_screen.toggle_visibility()
-            game_over_screen.display()
+        counter += 1
+        if counter > 100000:
+            counter = 0
 
-            paused = True
+        if counter % (fps // 2) == 0 or pressing_down and game.state == "start":
+            game.move_down()
 
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_r:
-                        # Restart the game
-                        game = Tetris(board_width=10, board_height=20)
-                        game.create_figure(3, 0)
-                        game.state = "start"
-                        game.dropping_counter = fps // 2
-                        game_over_screen.toggle_visibility()
-                        paused = False
-                    elif event.key == pygame.K_q:
-                        done = True
-        
-        if not paused:
-            fps, game.dropping_counter = game.speed_increase.increase_speed(fps, game.dropping_counter)
-            counter += 1
-            if counter > 100000:
-                counter = 0
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                done = True
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    game.rotate_figure()
+                if event.key == pygame.K_DOWN:
+                    pressing_down = True
+                if event.key == pygame.K_LEFT:
+                    game.move_sideways(-1)
+                if event.key == pygame.K_RIGHT:
+                    game.move_sideways(1)
+                if event.key == pygame.K_SPACE:
+                    game.drop_figure()
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_DOWN:
+                    pressing_down = False
 
-            if counter % game.dropping_counter == 0 or pressing_down and game.state == "start":
-                game.move_down()
+        game.draw_board(screen)
+        game.draw_figure(screen, FIGURES[game.figure_type][game.rotation])
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    done = True
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_UP:
-                        game.rotate_figure()
-                    if event.key == pygame.K_DOWN:
-                        pressing_down = True
-                    if event.key == pygame.K_LEFT:
-                        game.move_sideways(-1)
-                    if event.key == pygame.K_RIGHT:
-                        game.move_sideways(1)
-                    if event.key == pygame.K_SPACE:
-                        game.drop_figure()
-                if event.type == pygame.KEYUP:
-                    if event.key == pygame.K_DOWN:
-                        pressing_down = False
-
-            game.draw_board(screen)
-            game.draw_figure(screen, FIGURES[game.figure_type][game.rotation])
-            SpeedIncrease.draw_dropping_counter(game, screen)
-
-            pygame.display.flip()
-            clock.tick(fps)
+        pygame.display.flip()
+        clock.tick(fps)
 
     pygame.quit()
 
