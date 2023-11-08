@@ -1,0 +1,25 @@
+{
+  "11_8_23" : {
+    "cloc_url"           : "github.com/AlDanial/cloc",
+    "cloc_version"       : "1.98",
+    "elapsed_seconds"    : 0.22990608215332,
+    "n_files"            : 2,
+    "n_lines"            : 264,
+    "files_per_second"   : 8.69920439367165,
+    "lines_per_second"   : 1148.29497996466},
+  "refactored_tetris.py" :{
+    "blank": 28,
+    "comment": 3,
+    "code": 169,
+    "language": "Python"},
+  "speed_increase.py" :{
+    "blank": 13,
+    "comment": 0,
+    "code": 51,
+    "language": "Python"},
+  "SUM": {
+    "blank": 41,
+    "comment": 3,
+    "code": 220,
+    "nFiles": 2} 
+}
