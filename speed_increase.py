@@ -37,3 +37,28 @@ class SpeedIncrease:
         level = levels[game.dropping_counter]
         text = font.render(f"Level: {level}", True, (0, 0, 0))
         screen.blit(text, (10, game.start_y + game.block_size * game.board_height + 10))
+
+class GameOverScreen:
+    def __init__(self, screen):
+        self.screen = screen
+        self.font = pygame.font.Font(None, 36)
+        
+        self.line1 = self.font.render("Game Over", True, (0, 0, 0))
+        self.line2 = self.font.render("Press 'r' to restart or 'q' to quit", True, (0, 0, 0))
+
+        self.line1_rect = self.line1.get_rect(center=(200, 200))
+        self.line2_rect = self.line2.get_rect(center=(200, 250))
+
+        self.visible = False
+
+    def toggle_visibility(self):
+        self.visible = not self.visible
+
+    def display(self):
+        if self.visible:
+            self.screen.fill((255, 255, 255))
+            
+            self.screen.blit(self.line1, self.line1_rect)
+            self.screen.blit(self.line2, self.line2_rect)
+            
+            pygame.display.flip()

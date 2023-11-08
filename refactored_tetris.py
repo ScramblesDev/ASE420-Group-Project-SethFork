@@ -1,6 +1,7 @@
 import pygame
 import random
 from speed_increase import SpeedIncrease
+from speed_increase import GameOverScreen
 
 # Colors definitions
 COLORS = [
@@ -136,41 +137,62 @@ def main():
     done = False
     game.dropping_counter = fps // 2  # Initialize the dropping counter
 
+    game_over_screen = GameOverScreen(screen)
+    paused = False  
+
     while not done:
-        fps, game.dropping_counter = game.speed_increase.increase_speed(fps, game.dropping_counter)
-        counter += 1
-        if counter > 100000:
-            counter = 0
+        if game.state == "gameover":
+            game_over_screen.toggle_visibility()
+            game_over_screen.display()
 
-        if counter % game.dropping_counter == 0 or pressing_down and game.state == "start":
-            game.move_down()
+            paused = True
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                done = True
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
-                    game.rotate_figure()
-                if event.key == pygame.K_DOWN:
-                    pressing_down = True
-                if event.key == pygame.K_LEFT:
-                    game.move_sideways(-1)
-                if event.key == pygame.K_RIGHT:
-                    game.move_sideways(1)
-                if event.key == pygame.K_SPACE:
-                    game.drop_figure()
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_DOWN:
-                    pressing_down = False
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_r:
+                        # Restart the game
+                        game = Tetris(board_width=10, board_height=20)
+                        game.create_figure(3, 0)
+                        game.state = "start"
+                        game.dropping_counter = fps // 2
+                        game_over_screen.toggle_visibility()
+                        paused = False
+                    elif event.key == pygame.K_q:
+                        done = True
+        
+        if not paused:
+            fps, game.dropping_counter = game.speed_increase.increase_speed(fps, game.dropping_counter)
+            counter += 1
+            if counter > 100000:
+                counter = 0
 
-        game.draw_board(screen)
-        game.draw_figure(screen, FIGURES[game.figure_type][game.rotation])
-        SpeedIncrease.draw_dropping_counter(game, screen)
+            if counter % game.dropping_counter == 0 or pressing_down and game.state == "start":
+                game.move_down()
 
-        pygame.display.flip()
-        clock.tick(fps)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    done = True
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        game.rotate_figure()
+                    if event.key == pygame.K_DOWN:
+                        pressing_down = True
+                    if event.key == pygame.K_LEFT:
+                        game.move_sideways(-1)
+                    if event.key == pygame.K_RIGHT:
+                        game.move_sideways(1)
+                    if event.key == pygame.K_SPACE:
+                        game.drop_figure()
+                if event.type == pygame.KEYUP:
+                    if event.key == pygame.K_DOWN:
+                        pressing_down = False
 
-        if (game.state == "gameover"): done = True
+            game.draw_board(screen)
+            game.draw_figure(screen, FIGURES[game.figure_type][game.rotation])
+            SpeedIncrease.draw_dropping_counter(game, screen)
+
+            pygame.display.flip()
+            clock.tick(fps)
 
     pygame.quit()
 
