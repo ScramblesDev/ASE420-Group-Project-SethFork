@@ -1,7 +1,6 @@
 import pygame
 import random
-from speed_increase import SpeedIncrease
-from speed_increase import GameOverScreen
+from speed_increase import SpeedIncrease, GameOverScreen
 from piece_preview import PiecePreview
 
 # Colors definitions
@@ -47,12 +46,16 @@ class Tetris:
         self.field = [[0] * self.board_width for _ in range(self.board_height)]
         self.speed_increase = SpeedIncrease(self, increase_interval=400, max_speed=5)
         self.dropping_counter = 0 # init root dropspeed
+        self.piece_preview = PiecePreview(Tetris, FIGURES, COLORS)
 
-    def create_figure(self, x, y):
+    def create_figure(self, x, y, 
+                      type=random.randint(0, len(FIGURES) - 1),
+                      color=random.randint(1, len(COLORS) - 1)
+                      ):
         self.shift_x = x
         self.shift_y = y
-        self.figure_type = random.randint(0, len(FIGURES) - 1)
-        self.color = random.randint(1, len(COLORS) - 1)
+        self.figure_type = type
+        self.color = color
         self.rotation = 0
 
     def intersects(self, figure):
@@ -81,7 +84,9 @@ class Tetris:
                 if i * 4 + j in figure:
                     self.field[i + self.shift_y][j + self.shift_x] = self.color
         self.break_lines()
-        self.create_figure(3, 0)
+        next_type, next_color = self.piece_preview.get_next_piece()
+        self.piece_preview.set_next_piece()
+        self.create_figure(3, 0, next_type, next_color)
         if self.intersects(FIGURES[self.figure_type][self.rotation]):
             self.state = "gameover"
 
@@ -141,8 +146,6 @@ def main():
     game_over_screen = GameOverScreen(screen)
     paused = False  
 
-    piece_preview = PiecePreview(game)
-
     while not done:
         if game.state == "gameover":
             game_over_screen.toggle_visibility()
@@ -194,7 +197,7 @@ def main():
             game.draw_figure(screen, FIGURES[game.figure_type][game.rotation])
             SpeedIncrease.draw_dropping_counter(game, screen)
 
-            piece_preview.draw_preview(screen, FIGURES)
+            game.piece_preview.draw_preview(screen)
 
             pygame.display.flip()
             clock.tick(fps)
