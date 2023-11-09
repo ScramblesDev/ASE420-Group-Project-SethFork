@@ -2,6 +2,7 @@ import pygame
 import random
 from speed_increase import SpeedIncrease
 from speed_increase import GameOverScreen
+from piece_preview import PiecePreview
 
 # Colors definitions
 COLORS = [
@@ -140,6 +141,8 @@ def main():
     game_over_screen = GameOverScreen(screen)
     paused = False  
 
+    piece_preview = PiecePreview(game)
+
     while not done:
         if game.state == "gameover":
             game_over_screen.toggle_visibility()
@@ -190,6 +193,8 @@ def main():
             game.draw_board(screen)
             game.draw_figure(screen, FIGURES[game.figure_type][game.rotation])
             SpeedIncrease.draw_dropping_counter(game, screen)
+
+            piece_preview.draw_preview(screen, FIGURES)
 
             pygame.display.flip()
             clock.tick(fps)
