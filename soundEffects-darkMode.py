@@ -124,9 +124,8 @@ def main():
 
     # Load sound effects
     move_sound = pygame.mixer.Sound("punch.wav")
-    rotate_sound = pygame.mixer.Sound("punch.wav")
-    drop_sound = pygame.mixer.Sound("punch.wav")
-    game_over_sound = pygame.mixer.Sound("punch.wav")
+    rotate_sound = pygame.mixer.Sound("rotate.wav")
+    drop_sound = pygame.mixer.Sound("car_door.wav")
     screen = pygame.display.set_mode((400, 500))
     pygame.display.set_caption("Tetris")
     clock = pygame.time.Clock()
@@ -156,7 +155,8 @@ def main():
                     game.rotate_figure()
                     rotate_sound.play()  # Play rotate sound
                if event.key == pygame.K_DOWN:
-                    pressing_down = True
+                    pressing_down = True # Play move sounds
+                    move_sound.play()
                if event.key == pygame.K_LEFT:
                     game.move_sideways(-1)
                     move_sound.play()  # Play move sound
@@ -165,7 +165,7 @@ def main():
                     move_sound.play()  # Play move sound
                if event.key == pygame.K_SPACE:
                     game.drop_figure()
-                    drop_sound.play()
+                    drop_sound.play() # Play drop sound
 
                 # Toggle dark mode on pressing "D" key
                if event.key == pygame.K_d:
