@@ -1,7 +1,9 @@
+import copy
 import pygame
 import random
 from speed_increase import SpeedIncrease, GameOverScreen
 from piece_preview import PiecePreview
+from save_piece import SavedPiece
 
 # Colors definitions
 COLORS = [
@@ -47,6 +49,7 @@ class Tetris:
         self.speed_increase = SpeedIncrease(self, increase_interval=400, max_speed=5)
         self.dropping_counter = 0 # init root dropspeed
         self.piece_preview = PiecePreview(Tetris, FIGURES, COLORS)
+        self.saved_piece = SavedPiece(FIGURES, COLORS)
 
     def create_figure(self, x, y, 
                       type=random.randint(0, len(FIGURES) - 1),
@@ -128,6 +131,7 @@ class Tetris:
                 if i * 4 + j in figure:
                     pygame.draw.rect(screen, COLORS[self.color], [self.start_x + self.block_size * (j + self.shift_x) + 1, self.start_y + self.block_size * (i + self.shift_y) + 1, self.block_size - 2, self.block_size - 2])
 
+
 def main():
     pygame.init()
     screen = pygame.display.set_mode((400, 500))
@@ -189,6 +193,11 @@ def main():
                         game.move_sideways(1)
                     if event.key == pygame.K_SPACE:
                         game.drop_figure()
+                    if event.key == pygame.K_f:
+                        if (game.saved_piece.get_saved_piece()):
+                            game.figure_type, game.rotation, game.color = game.saved_piece.swap_pieces(copy.deepcopy(game))
+                        else:
+                            game.saved_piece.save_piece(copy.deepcopy(game))
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_DOWN:
                         pressing_down = False
@@ -198,6 +207,7 @@ def main():
             SpeedIncrease.draw_dropping_counter(game, screen)
 
             game.piece_preview.draw_preview(screen)
+            game.saved_piece.draw_saved_piece(screen)
 
             pygame.display.flip()
             clock.tick(fps)
