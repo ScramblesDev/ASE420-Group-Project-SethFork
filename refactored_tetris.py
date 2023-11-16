@@ -197,7 +197,7 @@ def main():
                         if (game.saved_piece.get_saved_piece()):
                             game.figure_type, game.rotation, game.color = game.saved_piece.swap_pieces(copy.deepcopy(game))
                         else:
-                            game.saved_piece.save_piece(copy.deepcopy(game))
+                            game.figure_type, game.rotation, game.color = game.saved_piece.save_piece(copy.deepcopy(game))
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_DOWN:
                         pressing_down = False
