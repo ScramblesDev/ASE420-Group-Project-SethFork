@@ -8,15 +8,17 @@ class SpeedIncrease:
         self.counter = 0
 
     def increase_speed(self, fps, dropping_counter):
-        if dropping_counter > self.max_speed:
-            self.counter += 1
-            if self.counter >= self.increase_interval:
-                fps += 5
-                self.counter = 0
-                dropping_counter = dropping_counter - 1
+        if not self.tetris.paused:  # Check if the game is not paused
+            if dropping_counter > self.max_speed:
+                self.counter += 1
+                if self.counter >= self.increase_interval:
+                    fps += 5
+                    self.counter = 0
+                    dropping_counter = dropping_counter - 1
         
         return fps, dropping_counter
     
+    @staticmethod
     def draw_dropping_counter(game, screen):
         levels = {
             12: '1',

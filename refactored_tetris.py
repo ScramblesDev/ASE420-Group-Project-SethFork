@@ -5,6 +5,9 @@ from DarkMode import DarkMode
 from SoundEffects import SoundEffect
 from GameOverScreen import GameOverScreen
 import random
+import copy
+from piece_preview import PiecePreview
+from save_piece import SavedPiece
 
 # Colors definitions
 COLORS = [
@@ -19,7 +22,6 @@ COLORS = [
 
 WHITE = (255, 255, 255)
 GRAY = (128, 128, 128)
-BLACK = COLORS[0]
 
 # Tetris figures patterns
 FIGURES = [
@@ -49,11 +51,21 @@ class Tetris:
         self.field = [[0] * self.board_width for _ in range(self.board_height)]
         self.speed_increase = SpeedIncrease(self, increase_interval=400, max_speed=5)
         self.dropping_counter = 0  # init root dropspeed
+
+
+
+
+
+        self.dropping_counter = 0 # init root dropspeed
+        self.piece_preview = PiecePreview(Tetris, FIGURES, COLORS)
+        self.saved_piece = SavedPiece(FIGURES, COLORS)
+        self.dropping_counter = 0  # init root dropspeed
         self.sound_effects = sound_effects
         self.dark_mode = dark_mode
-
+        self.paused = False
+        self.pause_message = None
         self.mute = False
-
+        
     def toggle_mute(self):
         self.mute = not self.mute
         if self.mute:
@@ -64,11 +76,22 @@ class Tetris:
     def play_sound(self, sound_key):
         self.sound_effects.play_sound(sound_key)
 
-    def create_figure(self, x, y):
+    def toggle_pause(self):
+        self.paused = not self.paused
+        if self.paused:
+            self.pause_message = pygame.font.Font(None, 36).render("Paused", True, (0, 0, 0))
+            self.pause_message_rect = self.pause_message.get_rect(center=(200, 300))
+        else:
+            self.pause_message = None
+
+    def create_figure(self, x, y, 
+                      type=random.randint(0, len(FIGURES) - 1),
+                      color=random.randint(1, len(COLORS) - 1)
+                      ):
         self.shift_x = x
         self.shift_y = y
-        self.figure_type = random.randint(0, len(FIGURES) - 1)
-        self.color = random.randint(1, len(COLORS) - 1)
+        self.figure_type = type
+        self.color = color
         self.rotation = 0
 
     def intersects(self, figure):
@@ -97,15 +120,18 @@ class Tetris:
                 if i * 4 + j in figure:
                     self.field[i + self.shift_y][j + self.shift_x] = self.color
         self.break_lines()
-        self.create_figure(3, 0)
+        next_type, next_color = self.piece_preview.get_next_piece()
+        self.piece_preview.set_next_piece()
+        self.create_figure(3, 0, next_type, next_color)
         if self.intersects(FIGURES[self.figure_type][self.rotation]):
             self.state = "gameover"
 
     def move_down(self):
-        self.shift_y += 1
-        if self.intersects(FIGURES[self.figure_type][self.rotation]):
-            self.shift_y -= 1
-            self.freeze(FIGURES[self.figure_type][self.rotation])
+        if not self.paused:  # this basically cheks if the game isn't paused
+            self.shift_y += 1
+            if self.intersects(FIGURES[self.figure_type][self.rotation]):
+                self.shift_y -= 1
+                self.freeze(FIGURES[self.figure_type][self.rotation])
 
     def move_sideways(self, dx):
         old_x = self.shift_x
@@ -133,6 +159,10 @@ class Tetris:
                     pygame.draw.rect(screen, COLORS[self.field[i][j]], [self.start_x + self.block_size * j + 1, self.start_y + self.block_size * i + 1, self.block_size - 2, self.block_size - 1])
 
     def draw_figure(self, screen, figure, grid_color):
+
+    def draw_figure(self, screen, figure):
+        if self.paused and self.pause_message:
+            screen.blit(self.pause_message, self.pause_message_rect)
         for i in range(4):
             for j in range(4):
                 if i * 4 + j in figure:
@@ -157,7 +187,7 @@ def main():
     counter = 0
     pressing_down = False
     done = False
-    game.dropping_counter = fps // 2  # Initialize the dropping counter
+    game.dropping_counter = fps // 2  # we're gonna initialize the dropping counter
 
     game_over_screen = GameOverScreen(screen)
     paused = False
@@ -215,6 +245,13 @@ def main():
                     if event.key == pygame.K_m:
                         game.toggle_mute()
 
+                    if event.key == pygame.K_f:
+                        if (game.saved_piece.get_saved_piece()):
+                            game.figure_type, game.rotation, game.color = game.saved_piece.swap_pieces(copy.deepcopy(game))
+                        else:
+                            game.figure_type, game.rotation, game.color = game.saved_piece.save_piece(copy.deepcopy(game))
+                    if event.key == pygame.K_RETURN:  # pauses upon pressing the enter key
+                        game.toggle_pause()
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_DOWN:
                         pressing_down = False
@@ -230,6 +267,9 @@ def main():
             game.draw_figure(screen, FIGURES[game.figure_type][game.rotation], grid_color)
 
             #Sgame.speed_increase.draw_dropping_counter(screen)
+
+            game.piece_preview.draw_preview(screen)
+            game.saved_piece.draw_saved_piece(screen)
 
             pygame.display.flip()
             clock.tick(fps)
