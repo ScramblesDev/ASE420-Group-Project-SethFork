@@ -1,6 +1,9 @@
+import copy
 import pygame
 import random
 from speed_increase import SpeedIncrease, GameOverScreen
+from piece_preview import PiecePreview
+from save_piece import SavedPiece
 
 # Colors definitions
 COLORS = [
@@ -43,6 +46,9 @@ class Tetris:
         self.state = "start"  # or "gameover"
         self.field = [[0] * self.board_width for _ in range(self.board_height)]
         self.speed_increase = SpeedIncrease(self, increase_interval=400, max_speed=5)
+        self.dropping_counter = 0 # init root dropspeed
+        self.piece_preview = PiecePreview(Tetris, FIGURES, COLORS)
+        self.saved_piece = SavedPiece(FIGURES, COLORS)
         self.dropping_counter = 0  # init root dropspeed
         self.paused = False
         self.pause_message = None
@@ -55,11 +61,14 @@ class Tetris:
         else:
             self.pause_message = None
 
-    def create_figure(self, x, y):
+    def create_figure(self, x, y, 
+                      type=random.randint(0, len(FIGURES) - 1),
+                      color=random.randint(1, len(COLORS) - 1)
+                      ):
         self.shift_x = x
         self.shift_y = y
-        self.figure_type = random.randint(0, len(FIGURES) - 1)
-        self.color = random.randint(1, len(COLORS) - 1)
+        self.figure_type = type
+        self.color = color
         self.rotation = 0
 
     def intersects(self, figure):
@@ -88,7 +97,9 @@ class Tetris:
                 if i * 4 + j in figure:
                     self.field[i + self.shift_y][j + self.shift_x] = self.color
         self.break_lines()
-        self.create_figure(3, 0)
+        next_type, next_color = self.piece_preview.get_next_piece()
+        self.piece_preview.set_next_piece()
+        self.create_figure(3, 0, next_type, next_color)
         if self.intersects(FIGURES[self.figure_type][self.rotation]):
             self.state = "gameover"
 
@@ -133,6 +144,7 @@ class Tetris:
             for j in range(4):
                 if i * 4 + j in figure:
                     pygame.draw.rect(screen, COLORS[self.color], [self.start_x + self.block_size * (j + self.shift_x) + 1, self.start_y + self.block_size * (i + self.shift_y) + 1, self.block_size - 2, self.block_size - 2])
+
 
 def main():
     pygame.init()
@@ -195,6 +207,11 @@ def main():
                         game.move_sideways(1)
                     if event.key == pygame.K_SPACE:
                         game.drop_figure()
+                    if event.key == pygame.K_f:
+                        if (game.saved_piece.get_saved_piece()):
+                            game.figure_type, game.rotation, game.color = game.saved_piece.swap_pieces(copy.deepcopy(game))
+                        else:
+                            game.figure_type, game.rotation, game.color = game.saved_piece.save_piece(copy.deepcopy(game))
                     if event.key == pygame.K_RETURN:  # pauses upon pressing the enter key
                         game.toggle_pause()
                 if event.type == pygame.KEYUP:
@@ -204,6 +221,9 @@ def main():
             game.draw_board(screen)
             game.draw_figure(screen, FIGURES[game.figure_type][game.rotation])
             SpeedIncrease.draw_dropping_counter(game, screen)
+
+            game.piece_preview.draw_preview(screen)
+            game.saved_piece.draw_saved_piece(screen)
 
             pygame.display.flip()
             clock.tick(fps)
