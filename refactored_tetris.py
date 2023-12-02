@@ -18,7 +18,6 @@ COLORS = [
 
 WHITE = (255, 255, 255)
 GRAY = (128, 128, 128)
-BLACK = COLORS[0]
 
 # Tetris figures patterns
 FIGURES = [
@@ -50,6 +49,17 @@ class Tetris:
         self.dropping_counter = 0 # init root dropspeed
         self.piece_preview = PiecePreview(Tetris, FIGURES, COLORS)
         self.saved_piece = SavedPiece(FIGURES, COLORS)
+        self.dropping_counter = 0  # init root dropspeed
+        self.paused = False
+        self.pause_message = None
+
+    def toggle_pause(self):
+        self.paused = not self.paused
+        if self.paused:
+            self.pause_message = pygame.font.Font(None, 36).render("Paused", True, (0, 0, 0))
+            self.pause_message_rect = self.pause_message.get_rect(center=(200, 300))
+        else:
+            self.pause_message = None
 
     def create_figure(self, x, y, 
                       type=random.randint(0, len(FIGURES) - 1),
@@ -94,10 +104,11 @@ class Tetris:
             self.state = "gameover"
 
     def move_down(self):
-        self.shift_y += 1
-        if self.intersects(FIGURES[self.figure_type][self.rotation]):
-            self.shift_y -= 1
-            self.freeze(FIGURES[self.figure_type][self.rotation])
+        if not self.paused:  # this basically cheks if the game isn't paused
+            self.shift_y += 1
+            if self.intersects(FIGURES[self.figure_type][self.rotation]):
+                self.shift_y -= 1
+                self.freeze(FIGURES[self.figure_type][self.rotation])
 
     def move_sideways(self, dx):
         old_x = self.shift_x
@@ -125,6 +136,9 @@ class Tetris:
                 if self.field[i][j] > 0:
                     pygame.draw.rect(screen, COLORS[self.field[i][j]], [self.start_x + self.block_size * j + 1, self.start_y + self.block_size * i + 1, self.block_size - 2, self.block_size - 1])
 
+        if self.paused and self.pause_message:
+            screen.blit(self.pause_message, self.pause_message_rect)
+
     def draw_figure(self, screen, figure):
         for i in range(4):
             for j in range(4):
@@ -139,13 +153,13 @@ def main():
     clock = pygame.time.Clock()
 
     game = Tetris(board_width=10, board_height=20)
-    game.create_figure(3, 0)
+    game.create_figure(    3, 0)
 
     fps = 25
     counter = 0
     pressing_down = False
     done = False
-    game.dropping_counter = fps // 2  # Initialize the dropping counter
+    game.dropping_counter = fps // 2  # we're gonna initialize the dropping counter
 
     game_over_screen = GameOverScreen(screen)
     paused = False  
@@ -169,7 +183,7 @@ def main():
                         paused = False
                     elif event.key == pygame.K_q:
                         done = True
-        
+
         if not paused:
             fps, game.dropping_counter = game.speed_increase.increase_speed(fps, game.dropping_counter)
             counter += 1
@@ -198,6 +212,8 @@ def main():
                             game.figure_type, game.rotation, game.color = game.saved_piece.swap_pieces(copy.deepcopy(game))
                         else:
                             game.figure_type, game.rotation, game.color = game.saved_piece.save_piece(copy.deepcopy(game))
+                    if event.key == pygame.K_RETURN:  # pauses upon pressing the enter key
+                        game.toggle_pause()
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_DOWN:
                         pressing_down = False
@@ -216,3 +232,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
