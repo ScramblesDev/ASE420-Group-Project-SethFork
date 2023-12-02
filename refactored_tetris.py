@@ -1,7 +1,10 @@
+# Your main script
 import pygame
-import random
 from speed_increase import SpeedIncrease
-from speed_increase import GameOverScreen
+from DarkMode import DarkMode
+from SoundEffects import SoundEffect
+from GameOverScreen import GameOverScreen
+import random
 
 # Colors definitions
 COLORS = [
@@ -30,7 +33,7 @@ FIGURES = [
 ]
 
 class Tetris:
-    def __init__(self, board_width, board_height):
+    def __init__(self, board_width, board_height, sound_effects, dark_mode):
         self.figure_type = 0
         self.color = 0
         self.rotation = 0
@@ -45,7 +48,21 @@ class Tetris:
         self.state = "start"  # or "gameover"
         self.field = [[0] * self.board_width for _ in range(self.board_height)]
         self.speed_increase = SpeedIncrease(self, increase_interval=400, max_speed=5)
-        self.dropping_counter = 0 # init root dropspeed
+        self.dropping_counter = 0  # init root dropspeed
+        self.sound_effects = sound_effects
+        self.dark_mode = dark_mode
+
+        self.mute = False
+
+    def toggle_mute(self):
+        self.mute = not self.mute
+        if self.mute:
+            pygame.mixer.stop()  # Stop all sound playback when muted
+        else:
+            pygame.mixer.init()  # Reinitialize the mixer when unmuted
+
+    def play_sound(self, sound_key):
+        self.sound_effects.play_sound(sound_key)
 
     def create_figure(self, x, y):
         self.shift_x = x
@@ -108,27 +125,32 @@ class Tetris:
         if self.intersects(FIGURES[self.figure_type][self.rotation]):
             self.rotation = old_rotation
 
-    def draw_board(self, screen):
-        screen.fill(WHITE)
+    def draw_board(self, screen, grid_color):
         for i in range(self.board_height):
             for j in range(self.board_width):
-                pygame.draw.rect(screen, GRAY, [self.start_x + self.block_size * j, self.start_y + self.block_size * i, self.block_size, self.block_size], 1)
+                pygame.draw.rect(screen, grid_color, [self.start_x + self.block_size * j, self.start_y + self.block_size * i, self.block_size, self.block_size], 1)
                 if self.field[i][j] > 0:
                     pygame.draw.rect(screen, COLORS[self.field[i][j]], [self.start_x + self.block_size * j + 1, self.start_y + self.block_size * i + 1, self.block_size - 2, self.block_size - 1])
 
-    def draw_figure(self, screen, figure):
+    def draw_figure(self, screen, figure, grid_color):
         for i in range(4):
             for j in range(4):
                 if i * 4 + j in figure:
                     pygame.draw.rect(screen, COLORS[self.color], [self.start_x + self.block_size * (j + self.shift_x) + 1, self.start_y + self.block_size * (i + self.shift_y) + 1, self.block_size - 2, self.block_size - 2])
 
+
 def main():
     pygame.init()
+    pygame.mixer.init()
+
     screen = pygame.display.set_mode((400, 500))
     pygame.display.set_caption("Tetris")
     clock = pygame.time.Clock()
 
-    game = Tetris(board_width=10, board_height=20)
+    sound_effects = SoundEffect()
+    dark_mode = DarkMode()
+
+    game = Tetris(board_width=10, board_height=20, sound_effects=sound_effects, dark_mode=dark_mode)
     game.create_figure(3, 0)
 
     fps = 25
@@ -138,11 +160,11 @@ def main():
     game.dropping_counter = fps // 2  # Initialize the dropping counter
 
     game_over_screen = GameOverScreen(screen)
-    paused = False  
+    paused = False
 
     while not done:
         if game.state == "gameover":
-            game_over_screen.toggle_visibility()
+            game_over_screen.toggle_visibility(game.score)
             game_over_screen.display()
 
             paused = True
@@ -151,15 +173,15 @@ def main():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_r:
                         # Restart the game
-                        game = Tetris(board_width=10, board_height=20)
+                        game = Tetris(board_width=10, board_height=20, sound_effects=sound_effects, dark_mode=dark_mode)
                         game.create_figure(3, 0)
                         game.state = "start"
                         game.dropping_counter = fps // 2
-                        game_over_screen.toggle_visibility()
+                        game_over_screen.toggle_visibility(game.score)
                         paused = False
                     elif event.key == pygame.K_q:
                         done = True
-        
+
         if not paused:
             fps, game.dropping_counter = game.speed_increase.increase_speed(fps, game.dropping_counter)
             counter += 1
@@ -175,21 +197,39 @@ def main():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         game.rotate_figure()
+                        game.play_sound("rotate")  # Play rotate sound
                     if event.key == pygame.K_DOWN:
                         pressing_down = True
+                        game.play_sound("move")  # Play move sounds
                     if event.key == pygame.K_LEFT:
                         game.move_sideways(-1)
+                        game.play_sound("move")  # Play move sound
                     if event.key == pygame.K_RIGHT:
                         game.move_sideways(1)
+                        game.play_sound("move")  # Play move sound
                     if event.key == pygame.K_SPACE:
                         game.drop_figure()
+                        game.play_sound("drop")  # Play drop sound
+                    if event.key == pygame.K_d:
+                        dark_mode.toggle_mode()
+                    if event.key == pygame.K_m:
+                        game.toggle_mute()
+
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_DOWN:
                         pressing_down = False
 
-            game.draw_board(screen)
-            game.draw_figure(screen, FIGURES[game.figure_type][game.rotation])
-            SpeedIncrease.draw_dropping_counter(game, screen)
+            background_color, grid_color = dark_mode.get_colors()
+
+            screen.fill(background_color)
+
+            # Draw the board grid with the inverted grid color
+            game.draw_board(screen, grid_color)
+
+            # Draw the figure grid with the inverted grid color
+            game.draw_figure(screen, FIGURES[game.figure_type][game.rotation], grid_color)
+
+            #Sgame.speed_increase.draw_dropping_counter(screen)
 
             pygame.display.flip()
             clock.tick(fps)
