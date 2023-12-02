@@ -199,6 +199,7 @@ def main():
             game_over_screen.display()
 
             paused = True
+            pressing_down = False
 
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
@@ -207,6 +208,7 @@ def main():
                         game = Tetris(board_width=10, board_height=20, sound_effects=sound_effects, dark_mode=dark_mode)
                         game.create_figure(3, 0)
                         game.state = "start"
+                        fps = 25
                         game.dropping_counter = fps // 2
                         game_over_screen.toggle_visibility(game.score)
                         paused = False
