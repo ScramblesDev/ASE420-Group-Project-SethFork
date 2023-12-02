@@ -1,11 +1,14 @@
 # Your main script
 import pygame
+import random
+import copy
+import sys 
+import os
+sys.path.append(os.path.abspath("src/"))
 from speed_increase import SpeedIncrease
 from DarkMode import DarkMode
 from SoundEffects import SoundEffect
 from GameOverScreen import GameOverScreen
-import random
-import copy
 from piece_preview import PiecePreview
 from save_piece import SavedPiece
 
@@ -159,8 +162,6 @@ class Tetris:
                     pygame.draw.rect(screen, COLORS[self.field[i][j]], [self.start_x + self.block_size * j + 1, self.start_y + self.block_size * i + 1, self.block_size - 2, self.block_size - 1])
 
     def draw_figure(self, screen, figure, grid_color):
-
-    def draw_figure(self, screen, figure):
         if self.paused and self.pause_message:
             screen.blit(self.pause_message, self.pause_message_rect)
         for i in range(4):
