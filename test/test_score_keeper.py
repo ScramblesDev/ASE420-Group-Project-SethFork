@@ -2,11 +2,10 @@ import pytest
 import sys
 import os
 import pygame
-sys.path.append(os.path.abspath("../src"))  # Adjust path to include src folder
+sys.path.append(os.path.abspath("../src"))
 
 from score_keeper import ScoreKeeper
 
-# Mock screen for testing purposes
 @pytest.fixture
 def mock_screen():
     pygame.init()

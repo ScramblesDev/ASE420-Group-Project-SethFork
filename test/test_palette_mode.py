@@ -1,7 +1,7 @@
 import pytest
 import sys
 import os
-sys.path.append(os.path.abspath("../src"))  # Adjust path to include src folder
+sys.path.append(os.path.abspath("../src"))
 
 from palette_mode import PaletteMode
 
