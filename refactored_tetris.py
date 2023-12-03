@@ -6,7 +6,7 @@ import sys
 import os
 sys.path.append(os.path.abspath("src/"))
 from speed_increase import SpeedIncrease
-from DarkMode import DarkMode
+from DarkMode import DarkMode, DarkModeSavedPiece
 from SoundEffects import SoundEffect
 from GameOverScreen import GameOverScreen
 from piece_preview import PiecePreview
@@ -54,11 +54,6 @@ class Tetris:
         self.field = [[0] * self.board_width for _ in range(self.board_height)]
         self.speed_increase = SpeedIncrease(self, increase_interval=400, max_speed=5)
         self.dropping_counter = 0  # init root dropspeed
-
-
-
-
-
         self.dropping_counter = 0 # init root dropspeed
         self.piece_preview = PiecePreview(Tetris, FIGURES, COLORS)
         self.saved_piece = SavedPiece(FIGURES, COLORS)
@@ -168,7 +163,14 @@ class Tetris:
             for j in range(4):
                 if i * 4 + j in figure:
                     pygame.draw.rect(screen, COLORS[self.color], [self.start_x + self.block_size * (j + self.shift_x) + 1, self.start_y + self.block_size * (i + self.shift_y) + 1, self.block_size - 2, self.block_size - 2])
-
+    
+    def draw_next_text(self, screen, dark_mode, piece_preview):
+        font = pygame.font.Font(None, 36)
+        text_color = (0, 0, 0) if dark_mode.current_mode == "light" else (255, 255, 255)
+        text = font.render("Next", True, text_color)
+        screen.blit(text, (piece_preview.preview_x, piece_preview.preview_y - 30))
+    def toggle_mute(self):
+        self.sound_effects.toggle_mute()
 
 def main():
     pygame.init()
@@ -180,7 +182,7 @@ def main():
 
     sound_effects = SoundEffect()
     dark_mode = DarkMode()
-
+    dark_mode_saved_piece = DarkModeSavedPiece(FIGURES, COLORS)
     game = Tetris(board_width=10, board_height=20, sound_effects=sound_effects, dark_mode=dark_mode)
     game.create_figure(3, 0)
 
@@ -189,7 +191,7 @@ def main():
     pressing_down = False
     done = False
     game.dropping_counter = fps // 2  # we're gonna initialize the dropping counter
-
+    saved_piece = DarkModeSavedPiece(FIGURES, COLORS)
     game_over_screen = GameOverScreen(screen)
     paused = False
 
@@ -245,7 +247,7 @@ def main():
                         game.play_sound("drop")  # Play drop sound
                     if event.key == pygame.K_d:
                         dark_mode.toggle_mode()
-                    if event.key == pygame.K_m:
+                    if event.key == pygame.K_m: # Mute sounds
                         game.toggle_mute()
 
                     if event.key == pygame.K_f:
@@ -272,7 +274,9 @@ def main():
             #Sgame.speed_increase.draw_dropping_counter(screen)
 
             game.piece_preview.draw_preview(screen)
-            game.saved_piece.draw_saved_piece(screen)
+            game.draw_next_text(screen, dark_mode, game.piece_preview)
+          #  game.saved_piece(screen)
+            dark_mode_saved_piece.draw_saved_piece(screen, dark_mode)
 
             pygame.display.flip()
             clock.tick(fps)
