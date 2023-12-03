@@ -191,7 +191,7 @@ def main():
     sound_effects = SoundEffect()
     dark_mode = DarkMode()
     palette_mode = PaletteMode()
-    dark_mode_saved_piece = DarkModeSavedPiece(FIGURES)
+    dark_mode_saved_piece = DarkModeSavedPiece(FIGURES, COLORS)
     game = Tetris(board_width=10, board_height=20, sound_effects=sound_effects, dark_mode=dark_mode)
     game.create_figure(3, 0)
 
@@ -200,7 +200,7 @@ def main():
     pressing_down = False
     done = False
     game.dropping_counter = fps // 2  # we're gonna initialize the dropping counter
-    saved_piece = DarkModeSavedPiece(FIGURES)
+    saved_piece = DarkModeSavedPiece(FIGURES, COLORS)
     game_over_screen = GameOverScreen(screen)
     paused = False
 
