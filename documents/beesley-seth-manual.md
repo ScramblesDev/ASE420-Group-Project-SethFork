@@ -8,7 +8,7 @@ Key features of the `ScoreKeeper` class include:
 - `screen`: A reference to the game's display surface where the score will be rendered.
 - `score`: A variable to keep track of the player's current score.
 - `font`: The font used for displaying the score text.
-- `color`: The color of the score text, set to black by default.
+- `color`: The color of the score text, set to black by default
 
 The class has two main methods:
 - `update_score(new_score)`: This method updates the score variable with the value passed as `new_score`.
