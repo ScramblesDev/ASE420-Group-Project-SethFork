@@ -265,19 +265,19 @@ def main():
                         game.play_sound("rotate")  # Play rotate sound
                     if event.key == pygame.K_DOWN:
                         pressing_down = True
-                        game.play_sound("move")  # Play move sounds
+                        game.play_sound("move")
                     if event.key == pygame.K_LEFT:
                         game.move_sideways(-1)
-                        game.play_sound("move")  # Play move sound
+                        game.play_sound("move")
                     if event.key == pygame.K_RIGHT:
                         game.move_sideways(1)
-                        game.play_sound("move")  # Play move sound
+                        game.play_sound("move")
                     if event.key == pygame.K_SPACE:
                         game.drop_figure()
-                        game.play_sound("drop")  # Play drop sound
+                        game.play_sound("drop")
                     if event.key == pygame.K_d:
                         dark_mode.toggle_mode()
-                    if event.key == pygame.K_m: # Mute sounds
+                    if event.key == pygame.K_m:
                         game.toggle_mute()
                     if event.key == pygame.K_c:
                         if dark_mode.current_mode == "light":
@@ -287,7 +287,7 @@ def main():
                             game.figure_type, game.rotation, game.color = game.saved_piece.swap_pieces(copy.deepcopy(game))
                         else:
                             game.figure_type, game.rotation, game.color = game.saved_piece.save_piece(copy.deepcopy(game))
-                    if event.key == pygame.K_RETURN:  # pauses upon pressing the enter key
+                    if event.key == pygame.K_RETURN:
                         game.toggle_pause()
                     
                 if event.type == pygame.KEYUP:
