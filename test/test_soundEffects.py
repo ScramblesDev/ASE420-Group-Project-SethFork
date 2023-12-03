@@ -2,6 +2,10 @@
 import unittest
 import pygame
 from unittest.mock import Mock, patch
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 from SoundEffects import SoundEffect
 
 class TestSoundEffect(unittest.TestCase):
@@ -16,12 +20,12 @@ class TestSoundEffect(unittest.TestCase):
         pygame.quit()
 
     def setUp(self):
-        # Create a mock Sound object for each sound key
+        # Create a mock Sound object for each sound file path
         self.mock_sounds = {
-            "move": Mock(),
-            "rotate": Mock(),
-            "drop": Mock(),
-            "line_clear": Mock(),
+            "src/data/punch.wav": Mock(),
+            "src/data/rotate.wav": Mock(),
+            "src/data/car_door.wav": Mock(),
+            "src/data/boom.wav": Mock(),
         }
 
         # Patch the pygame.mixer.Sound constructor to return mock sounds
@@ -53,15 +57,17 @@ class TestSoundEffect(unittest.TestCase):
         self.assertFalse(self.sound_effect.mute)
 
     def test_play_sound(self):
-        # Test playing a sound when not muted
-        sound_key = "move"
+        sound_key = 'move'
+        file_path = 'src/data/punch.wav'
+        
+        # Test playing the sound when not muted
         self.sound_effect.play_sound(sound_key)
-        self.mock_sounds[sound_key].play.assert_called_once()
+        self.mock_sounds[file_path].play.assert_called_once()
 
-        # Test playing a sound when muted
+        # Reset the mock for the next test
+        self.mock_sounds[file_path].play.reset_mock()
+
+        # Test not playing the sound when muted
         self.sound_effect.toggle_mute()
         self.sound_effect.play_sound(sound_key)
-        self.mock_sounds[sound_key].play.assert_not_called()
-
-if __name__ == "__main__":
-    unittest.main()
+        self.mock_sounds[file_path].play.assert_not_called()
