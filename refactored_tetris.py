@@ -120,21 +120,29 @@ class Tetris:
             self.back_to_back_clear = False
 
     def freeze(self, figure):
+        # Set the blocks of the figure in the field
         for i in range(4):
             for j in range(4):
                 if i * 4 + j in figure:
-                    self.field[i + self.shift_y][j + self.shift_x] = self.color
+                    if 0 <= j + self.shift_x < self.board_width and 0 <= i + self.shift_y < self.board_height:
+                        self.field[i + self.shift_y][j + self.shift_x] = self.color
+
         self.break_lines()
+
+        # Check if the next figure intersects immediately upon creation - this is typically game over in Tetris
         next_type, next_color = self.piece_preview.get_next_piece()
-        self.piece_preview.set_next_piece()
         self.create_figure(3, 0, next_type, next_color)
         if self.intersects(FIGURES[self.figure_type][self.rotation]):
             self.state = "gameover"
+        else:
+            self.piece_preview.set_next_piece()
+
 
     def move_down(self):
         if not self.pause_handler.is_paused():  # this basically cheks if the game isn't paused
             self.shift_y += 1
             if self.intersects(FIGURES[self.figure_type][self.rotation]):
+                # If it intersects after moving down, move it back and freeze
                 self.shift_y -= 1
                 self.freeze(FIGURES[self.figure_type][self.rotation])
 
@@ -175,8 +183,13 @@ class Tetris:
         text_color = (0, 0, 0) if dark_mode.current_mode == "light" else (255, 255, 255)
         text = font.render("Next", True, text_color)
         screen.blit(text, (piece_preview.preview_x, piece_preview.preview_y - 30))
-    def toggle_mute(self):
-        self.sound_effects.toggle_mute()
+def toggle_mute(self):
+    self.mute = not self.mute
+    if self.mute:
+        pygame.mixer.stop()  # Stop all sounds if muted
+    else:
+        pygame.mixer.unpause()  # Unpause or reinitialize sounds if unmuted
+
 
 def main():
     pygame.init()
@@ -192,7 +205,7 @@ def main():
     sound_effects = SoundEffect()
     dark_mode = DarkMode()
     palette_mode = PaletteMode()
-    dark_mode_saved_piece = DarkModeSavedPiece(FIGURES, COLORS)
+    dark_mode_saved_piece = DarkModeSavedPiece(FIGURES)
     game = Tetris(board_width=10, board_height=20, sound_effects=sound_effects, dark_mode=dark_mode)
     game.create_figure(3, 0)
 
@@ -201,7 +214,7 @@ def main():
     pressing_down = False
     done = False
     game.dropping_counter = fps // 2  # we're gonna initialize the dropping counter
-    saved_piece = DarkModeSavedPiece(FIGURES, COLORS)
+    saved_piece = DarkModeSavedPiece(FIGURES)
     game_over_screen = GameOverScreen(screen)
     paused = False
 
@@ -269,7 +282,7 @@ def main():
                         play_sound("drop")  # Play drop sound
                     if event.key == pygame.K_d:
                         dark_mode.toggle_mode()
-                    if event.key == pygame.K_m: # Mute sounds
+                    if event.key == pygame.K_m:
                         game.toggle_mute()
                     if event.key == pygame.K_c:
                         if dark_mode.current_mode == "light":
@@ -279,6 +292,7 @@ def main():
                             game.figure_type, game.rotation, game.color = game.saved_piece.swap_pieces(copy.deepcopy(game))
                         else:
                             game.figure_type, game.rotation, game.color = game.saved_piece.save_piece(copy.deepcopy(game))
+
                     if event.key == pygame.K_RETURN:  # pauses upon pressing the enter key
                         game.pause_handler.toggle_pause()
                     
