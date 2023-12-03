@@ -13,6 +13,7 @@ from piece_preview import PiecePreview
 from save_piece import SavedPiece
 from palette_mode import PaletteMode
 from score_keeper import ScoreKeeper
+from pause_handler import PauseHandler
 
 
 # Colors definitions
@@ -66,15 +67,19 @@ class Tetris:
         self.dark_mode = dark_mode
         self.paused = False
         self.pause_message = None
-        # self.mute = False
-
-    def toggle_pause(self):
-        self.paused = not self.paused
-        if self.paused:
-            self.pause_message = pygame.font.Font(None, 36).render("Paused", True, (0, 0, 0))
-            self.pause_message_rect = self.pause_message.get_rect(center=(200, 300))
+        self.mute = False
+        self.pause_handler = PauseHandler()
+        
+    def toggle_mute(self):
+        self.mute = not self.mute
+        if self.mute:
+            pygame.mixer.stop()  # Stop all sound playback when muted
         else:
-            self.pause_message = None
+            pygame.mixer.init()  # Reinitialize the mixer when unmuted
+
+    def play_sound(self, sound_key):
+        self.sound_effects.play_sound(sound_key)
+
 
     def create_figure(self, x, y, 
                       type=random.randint(0, len(FIGURES) - 1),
@@ -127,7 +132,7 @@ class Tetris:
             self.state = "gameover"
 
     def move_down(self):
-        if not self.paused:  # this basically cheks if the game isn't paused
+        if not self.pause_handler.is_paused():  # this basically cheks if the game isn't paused
             self.shift_y += 1
             if self.intersects(FIGURES[self.figure_type][self.rotation]):
                 self.shift_y -= 1
@@ -159,8 +164,7 @@ class Tetris:
                     pygame.draw.rect(screen, COLORS[self.field[i][j]], [self.start_x + self.block_size * j + 1, self.start_y + self.block_size * i + 1, self.block_size - 2, self.block_size - 1])
 
     def draw_figure(self, screen, figure, grid_color):
-        if self.paused and self.pause_message:
-            screen.blit(self.pause_message, self.pause_message_rect)
+        self.pause_handler.draw_pause_message(screen)
         for i in range(4):
             for j in range(4):
                 if i * 4 + j in figure:
@@ -276,7 +280,7 @@ def main():
                         else:
                             game.figure_type, game.rotation, game.color = game.saved_piece.save_piece(copy.deepcopy(game))
                     if event.key == pygame.K_RETURN:  # pauses upon pressing the enter key
-                        game.toggle_pause()
+                        game.pause_handler.toggle_pause()
                     
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_DOWN:
