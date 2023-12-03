@@ -13,6 +13,7 @@ from piece_preview import PiecePreview
 from save_piece import SavedPiece
 from palette_mode import PaletteMode
 from score_keeper import ScoreKeeper
+from pause_handler import PauseHandler
 
 
 # Colors definitions
@@ -41,7 +42,7 @@ FIGURES = [
 ]
 
 class Tetris:
-    def __init__(self, board_width, board_height, sound_effects, dark_mode):
+    def __init__(self, board_width, board_height, dark_mode):
         self.figure_type = 0
         self.color = 0
         self.rotation = 0
@@ -62,11 +63,12 @@ class Tetris:
         self.piece_preview = PiecePreview(Tetris, FIGURES, COLORS)
         self.saved_piece = SavedPiece(FIGURES, COLORS)
         self.dropping_counter = 0  # init root dropspeed
-        self.sound_effects = sound_effects
+        # self.sound_effects = sound_effects
         self.dark_mode = dark_mode
         self.paused = False
         self.pause_message = None
         self.mute = False
+        self.pause_handler = PauseHandler()
         
     def toggle_mute(self):
         self.mute = not self.mute
@@ -78,13 +80,6 @@ class Tetris:
     def play_sound(self, sound_key):
         self.sound_effects.play_sound(sound_key)
 
-    def toggle_pause(self):
-        self.paused = not self.paused
-        if self.paused:
-            self.pause_message = pygame.font.Font(None, 36).render("Paused", True, (0, 0, 0))
-            self.pause_message_rect = self.pause_message.get_rect(center=(200, 300))
-        else:
-            self.pause_message = None
 
     def create_figure(self, x, y, 
                       type=random.randint(0, len(FIGURES) - 1),
@@ -144,8 +139,7 @@ class Tetris:
 
 
     def move_down(self):
-        if not self.paused:
-            # Tentatively move the figure down
+        if not self.pause_handler.is_paused():  # this basically cheks if the game isn't paused
             self.shift_y += 1
             if self.intersects(FIGURES[self.figure_type][self.rotation]):
                 # If it intersects after moving down, move it back and freeze
@@ -178,8 +172,7 @@ class Tetris:
                     pygame.draw.rect(screen, COLORS[self.field[i][j]], [self.start_x + self.block_size * j + 1, self.start_y + self.block_size * i + 1, self.block_size - 2, self.block_size - 1])
 
     def draw_figure(self, screen, figure, grid_color):
-        if self.paused and self.pause_message:
-            screen.blit(self.pause_message, self.pause_message_rect)
+        self.pause_handler.draw_pause_message(screen)
         for i in range(4):
             for j in range(4):
                 if i * 4 + j in figure:
@@ -225,6 +218,18 @@ def main():
     game_over_screen = GameOverScreen(screen)
     paused = False
 
+    mute = False
+
+    def toggle_mute():
+        mute = not mute
+        if mute:
+            pygame.mixer.stop()  # Stop all sound playback when muted
+        else:
+            pygame.mixer.init()  # Reinitialize the mixer when unmuted
+
+    def play_sound(sound_key):
+        sound_effects.play_sound(sound_key)
+
     while not done:
         if game.state == "gameover":
             game_over_screen.toggle_visibility(game.score)
@@ -237,7 +242,7 @@ def main():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_r:
                         # Restart the game
-                        game = Tetris(board_width=10, board_height=20, sound_effects=sound_effects, dark_mode=dark_mode)
+                        game = Tetris(board_width=10, board_height=20, dark_mode=dark_mode)
                         game.create_figure(3, 0)
                         game.state = "start"
                         fps = 25
@@ -262,19 +267,19 @@ def main():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         game.rotate_figure()
-                        game.play_sound("rotate")  # Play rotate sound
+                        play_sound("rotate")  # Play rotate sound
                     if event.key == pygame.K_DOWN:
                         pressing_down = True
-                        game.play_sound("move")
+                        play_sound("move")  # Play move sounds
                     if event.key == pygame.K_LEFT:
                         game.move_sideways(-1)
-                        game.play_sound("move")
+                        play_sound("move")  # Play move sound
                     if event.key == pygame.K_RIGHT:
                         game.move_sideways(1)
-                        game.play_sound("move")
+                        play_sound("move")  # Play move sound
                     if event.key == pygame.K_SPACE:
                         game.drop_figure()
-                        game.play_sound("drop")
+                        play_sound("drop")  # Play drop sound
                     if event.key == pygame.K_d:
                         dark_mode.toggle_mode()
                     if event.key == pygame.K_m:
@@ -287,8 +292,9 @@ def main():
                             game.figure_type, game.rotation, game.color = game.saved_piece.swap_pieces(copy.deepcopy(game))
                         else:
                             game.figure_type, game.rotation, game.color = game.saved_piece.save_piece(copy.deepcopy(game))
-                    if event.key == pygame.K_RETURN:
-                        game.toggle_pause()
+
+                    if event.key == pygame.K_RETURN:  # pauses upon pressing the enter key
+                        game.pause_handler.toggle_pause()
                     
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_DOWN:
