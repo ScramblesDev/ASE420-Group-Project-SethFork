@@ -5,10 +5,10 @@ class SoundEffect:
     def __init__(self):
         self.mute = False
         self.sounds = {
-            "move": pygame.mixer.Sound("punch.wav"),
-            "rotate": pygame.mixer.Sound("rotate.wav"),
-            "drop": pygame.mixer.Sound("car_door.wav"),
-            "line_clear": pygame.mixer.Sound("boom.wav"),
+            "move": pygame.mixer.Sound("src/data/punch.wav"),
+            "rotate": pygame.mixer.Sound("src/data/rotate.wav"),
+            "drop": pygame.mixer.Sound("src/data/car_door.wav"),
+            "line_clear": pygame.mixer.Sound("src/data/boom.wav"),
         }
 
     def toggle_mute(self):

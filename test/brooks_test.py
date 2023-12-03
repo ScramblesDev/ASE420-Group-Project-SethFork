@@ -12,7 +12,7 @@ def saved_piece_instance():
     return SavedPiece(figures={}, colors={})
 
 @pytest.fixture
-def speed_increase_instance():
+def test_speed_increase_instance():
     # speed increases in a single frame, for testing purposes.
     return SpeedIncrease(tetris=None, increase_interval=1, max_speed=10)
 
@@ -26,7 +26,7 @@ def piece_preview_instance():
     return PiecePreview(tetris=None, figures=figures, colors=colors)
 
 @pytest.fixture
-def piece_preview():
+def test_piece_preview():
     figures = [
         [[0, 1, 2, 3], [4, 5, 6, 7]],
         [[8, 9, 10, 11], [12, 13, 14, 15]],
@@ -34,6 +34,17 @@ def piece_preview():
     colors = [(255, 0, 0), (0, 255, 0)]
     return PiecePreview(MagicMock(), figures, colors)
 
+# SPEED INCREASE
+def test_increase_speed(speed_increase_instance):
+    fps, dropping_counter = 60, 30
+
+    new_fps, new_dropping_counter = speed_increase_instance.increase_speed(fps, dropping_counter)
+    print(f"new_fps: {new_fps}, new_dropping_counter{new_dropping_counter}")
+
+    assert new_fps != 60
+    assert new_dropping_counter != 30
+
+# SAVE PIECE
 def test_save_piece(saved_piece_instance, monkeypatch):
     monkeypatch.setattr('random.randint', lambda a, b: 0)
 
@@ -53,18 +64,8 @@ def test_get_saved_piece(saved_piece_instance, monkeypatch):
     saved_piece_instance.save_piece(current_piece)
     assert saved_piece_instance.get_saved_piece() == current_piece
 
-def test_increase_speed(speed_increase_instance):
-    fps, dropping_counter = 60, 30
-
-    new_fps, new_dropping_counter = speed_increase_instance.increase_speed(fps, dropping_counter)
-    print(f"new_fps: {new_fps}, new_dropping_counter{new_dropping_counter}")
-
-    assert new_fps != 60
-    assert new_dropping_counter != 30
-
-# initializes with random figure type, color, and rotation
+# PIECE PREVIEW
 def test_initialization_with_random_values(piece_preview_instance):
-    # using pytest
     tetris = None
     figures = [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15]]
     colors = [(0, 0, 0), (255, 255, 255)]
@@ -73,9 +74,7 @@ def test_initialization_with_random_values(piece_preview_instance):
     assert 0 <= preview.figure_type < len(figures)
 
 def test_draw_preview(piece_preview_instance):
-    # using pytest
     tetris = None
-    # Update figures to contain valid shapes for the preview
     figures = [
         ((1, 5, 9, 13), (4, 5, 6, 7)),
         ((4, 5, 9, 10), (2, 6, 5, 9)),
