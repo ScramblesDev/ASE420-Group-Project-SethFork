@@ -1,0 +1,43 @@
+{"header" : {
+    "cloc_url"           : "github.com/AlDanial/cloc",
+    "cloc_version"       : "1.98",
+    "elapsed_seconds"    : 0.100672960281372,
+    "n_files"            : 6,
+    "n_lines"            : 283,
+    "files_per_second"   : 59.5989229206187,
+    "lines_per_second"   : 2811.08253108918},
+  "src\\speed_increase.py" :{
+    "blank": 13,
+    "comment": 0,
+    "code": 53,
+    "language": "Python"},
+  "test\\test_savePiece.py" :{
+    "blank": 16,
+    "comment": 0,
+    "code": 45,
+    "language": "Python"},
+  "src\\save_piece.py" :{
+    "blank": 9,
+    "comment": 0,
+    "code": 37,
+    "language": "Python"},
+  "test\\test_piecePreview.py" :{
+    "blank": 9,
+    "comment": 0,
+    "code": 35,
+    "language": "Python"},
+  "src\\piece_preview.py" :{
+    "blank": 7,
+    "comment": 0,
+    "code": 30,
+    "language": "Python"},
+  "test\\test_speedIncrease.py" :{
+    "blank": 6,
+    "comment": 0,
+    "code": 23,
+    "language": "Python"},
+  "SUM": {
+    "blank": 60,
+    "comment": 0,
+    "code": 223,
+    "nFiles": 6} }
