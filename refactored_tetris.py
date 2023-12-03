@@ -41,7 +41,7 @@ FIGURES = [
 ]
 
 class Tetris:
-    def __init__(self, board_width, board_height, sound_effects, dark_mode):
+    def __init__(self, board_width, board_height, dark_mode):
         self.figure_type = 0
         self.color = 0
         self.rotation = 0
@@ -62,21 +62,11 @@ class Tetris:
         self.piece_preview = PiecePreview(Tetris, FIGURES, COLORS)
         self.saved_piece = SavedPiece(FIGURES, COLORS)
         self.dropping_counter = 0  # init root dropspeed
-        self.sound_effects = sound_effects
+        # self.sound_effects = sound_effects
         self.dark_mode = dark_mode
         self.paused = False
         self.pause_message = None
-        self.mute = False
-        
-    def toggle_mute(self):
-        self.mute = not self.mute
-        if self.mute:
-            pygame.mixer.stop()  # Stop all sound playback when muted
-        else:
-            pygame.mixer.init()  # Reinitialize the mixer when unmuted
-
-    def play_sound(self, sound_key):
-        self.sound_effects.play_sound(sound_key)
+        # self.mute = False
 
     def toggle_pause(self):
         self.paused = not self.paused
@@ -211,6 +201,18 @@ def main():
     game_over_screen = GameOverScreen(screen)
     paused = False
 
+    mute = False
+
+    def toggle_mute():
+        mute = not mute
+        if mute:
+            pygame.mixer.stop()  # Stop all sound playback when muted
+        else:
+            pygame.mixer.init()  # Reinitialize the mixer when unmuted
+
+    def play_sound(sound_key):
+        sound_effects.play_sound(sound_key)
+
     while not done:
         if game.state == "gameover":
             game_over_screen.toggle_visibility(game.score)
@@ -223,7 +225,7 @@ def main():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_r:
                         # Restart the game
-                        game = Tetris(board_width=10, board_height=20, sound_effects=sound_effects, dark_mode=dark_mode)
+                        game = Tetris(board_width=10, board_height=20, dark_mode=dark_mode)
                         game.create_figure(3, 0)
                         game.state = "start"
                         fps = 25
@@ -248,19 +250,19 @@ def main():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         game.rotate_figure()
-                        game.play_sound("rotate")  # Play rotate sound
+                        play_sound("rotate")  # Play rotate sound
                     if event.key == pygame.K_DOWN:
                         pressing_down = True
-                        game.play_sound("move")  # Play move sounds
+                        play_sound("move")  # Play move sounds
                     if event.key == pygame.K_LEFT:
                         game.move_sideways(-1)
-                        game.play_sound("move")  # Play move sound
+                        play_sound("move")  # Play move sound
                     if event.key == pygame.K_RIGHT:
                         game.move_sideways(1)
-                        game.play_sound("move")  # Play move sound
+                        play_sound("move")  # Play move sound
                     if event.key == pygame.K_SPACE:
                         game.drop_figure()
-                        game.play_sound("drop")  # Play drop sound
+                        play_sound("drop")  # Play drop sound
                     if event.key == pygame.K_d:
                         dark_mode.toggle_mode()
                     if event.key == pygame.K_m: # Mute sounds
