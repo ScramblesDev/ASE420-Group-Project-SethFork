@@ -11,6 +11,9 @@ from SoundEffects import SoundEffect
 from GameOverScreen import GameOverScreen
 from piece_preview import PiecePreview
 from save_piece import SavedPiece
+from palette_mode import PaletteMode
+from score_keeper import ScoreKeeper
+
 
 # Colors definitions
 COLORS = [
@@ -54,6 +57,7 @@ class Tetris:
         self.field = [[0] * self.board_width for _ in range(self.board_height)]
         self.speed_increase = SpeedIncrease(self, increase_interval=400, max_speed=5)
         self.dropping_counter = 0  # init root dropspeed
+        self.back_to_back_clear = False  # New attribute for tracking back-to-back clears
         self.dropping_counter = 0 # init root dropspeed
         self.piece_preview = PiecePreview(Tetris, FIGURES, COLORS)
         self.saved_piece = SavedPiece(FIGURES, COLORS)
@@ -110,7 +114,15 @@ class Tetris:
                 lines_cleared += 1
                 for k in range(i, 1, -1):
                     self.field[k] = self.field[k - 1].copy()
-        self.score += lines_cleared ** 2
+
+        if lines_cleared > 0:
+            if self.back_to_back_clear:
+                self.score += 1200 * lines_cleared
+            else:
+                self.score += 100 * lines_cleared
+            self.back_to_back_clear = True
+        else:
+            self.back_to_back_clear = False
 
     def freeze(self, figure):
         for i in range(4):
@@ -180,8 +192,12 @@ def main():
     pygame.display.set_caption("Tetris")
     clock = pygame.time.Clock()
 
+    # Initialize the ScoreKeeper
+    score_keeper = ScoreKeeper(screen)
+
     sound_effects = SoundEffect()
     dark_mode = DarkMode()
+    palette_mode = PaletteMode()
     dark_mode_saved_piece = DarkModeSavedPiece(FIGURES, COLORS)
     game = Tetris(board_width=10, board_height=20, sound_effects=sound_effects, dark_mode=dark_mode)
     game.create_figure(3, 0)
@@ -249,7 +265,9 @@ def main():
                         dark_mode.toggle_mode()
                     if event.key == pygame.K_m: # Mute sounds
                         game.toggle_mute()
-
+                    if event.key == pygame.K_c:
+                        if dark_mode.current_mode == "light":
+                            palette_mode.next_palette()
                     if event.key == pygame.K_f:
                         if (game.saved_piece.get_saved_piece()):
                             game.figure_type, game.rotation, game.color = game.saved_piece.swap_pieces(copy.deepcopy(game))
@@ -257,11 +275,17 @@ def main():
                             game.figure_type, game.rotation, game.color = game.saved_piece.save_piece(copy.deepcopy(game))
                     if event.key == pygame.K_RETURN:  # pauses upon pressing the enter key
                         game.toggle_pause()
+                    
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_DOWN:
                         pressing_down = False
 
             background_color, grid_color = dark_mode.get_colors()
+            if dark_mode.current_mode == "light":
+                palette_colors = palette_mode.get_current_palette()
+                background_color, grid_color, tetris_piece_colors = palette_colors
+                COLORS = tetris_piece_colors
+
 
             screen.fill(background_color)
 
@@ -277,6 +301,9 @@ def main():
             game.draw_next_text(screen, dark_mode, game.piece_preview)
           #  game.saved_piece(screen)
             dark_mode_saved_piece.draw_saved_piece(screen, dark_mode)
+
+            score_keeper.update_score(game.score)
+            score_keeper.draw()
 
             pygame.display.flip()
             clock.tick(fps)
