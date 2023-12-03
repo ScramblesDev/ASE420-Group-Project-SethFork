@@ -206,7 +206,7 @@ def main():
     dark_mode = DarkMode()
     palette_mode = PaletteMode()
     dark_mode_saved_piece = DarkModeSavedPiece(FIGURES)
-    game = Tetris(board_width=10, board_height=20, sound_effects=sound_effects, dark_mode=dark_mode)
+    game = Tetris(board_width=10, board_height=20, dark_mode=dark_mode)
     game.create_figure(3, 0)
 
     fps = 25
