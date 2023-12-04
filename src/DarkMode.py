@@ -40,6 +40,3 @@ class DarkModeSavedPiece(SavedPiece):
 
         text = font.render("Saved Piece", True, text_color)
         screen.blit(text, (self.preview_x, self.preview_y - 25))
-
-   
-    
